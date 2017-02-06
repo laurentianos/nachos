@@ -11,6 +11,9 @@ understanding of the problem. Describe any instance variables you add to the KTh
 
 ### Implementing the `join()` Method
 
+This thread.join() 
+
+
 [[TK: Discuss the choices you have made to implement this method. You will (hopefully) spend several paragraphs
 describing the logic behind your solution.
 
@@ -21,21 +24,16 @@ are using LATEX, I suggest using the verbatim environment for any pseudocode lis
 ```
 void join()
 {
-  // This is the pseudocode listing for join()
-}
-```
+  check if the thread queue exists
+  if it doesn't exit
+    create ThreadQueue object
+  disable the interopts
+  if this thread is not the current thread and the current thread is running
+    add this thread to queue
+  else
+    run next thread
 
-### Modifying the `finish()` Method  (or any method you decide to modify)
-
-[[TK: Discuss the choices you have made to modify this method. Try to be clear about the location your changes
-by inserting comments in your pseudocode.]]
-
-```
-static void finish()
-{
-  // Here is some code I inserted
-  // Here is some unmodified code
-  // Here is some code I inserted
+  reenable interrupts
 }
 ```
 
@@ -74,7 +72,9 @@ of the problem. You could also describe any data structures you will use to impl
 ```
 void sleep()
 {
-  // This is the pseudocode listing for sleep()
+  disable interupts
+  set this thread status to 'blocked'
+  reenable interrupts
 }
 ```
 
@@ -85,7 +85,10 @@ void sleep()
 ```
 void wake()
 {
-  // This is the pseudocode listing for wake()
+  disable interupts
+  if the first item on the readyQueue is a KThread
+    call KThread.ready()
+  reenable interupts
 }
 ```
 
@@ -96,7 +99,11 @@ void wake()
 ```
 void wakeAll()
 {
-  // This is the pseudocode listing for wakeAll()
+  DI
+  if readyQueue is not empty
+    for each KThread in the readyQueue
+      wake the KThread
+  RI
 }
 ```
 
@@ -147,7 +154,11 @@ MyClass implements SomeClass
 ```
 void timerInterrupt()
 {
-  // This is the pseudocode listing for timerInterrupt()
+  disable interrupts
+  if readyQueue is ....
+    curretThread.yield();
+    wake();
+  enable interupts
 }
 ```
 
@@ -158,7 +169,9 @@ void timerInterrupt()
 ```
 void waitUntil(long x)
 {
-  // This is the pseudocode listing for waitUntil()
+  get start time
+  while getTime < start time + x
+    KThread.sleep()
 }
 ```
 
