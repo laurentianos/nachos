@@ -29,8 +29,9 @@ void join()
 
 1. We will create a thread
 2. Start a second thread
-3. Call `join()` on the first thread
-4. Verify that the thread waits for the first thread
+3. We will try to join one of the threads to itself to make sure it can't join itself
+4. We will join one thread to the other thread
+5. We will verify that the thread waits for the first thread
      
 
 ## Task II: Implementing the `Condition2` Class
