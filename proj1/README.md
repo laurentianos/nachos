@@ -41,7 +41,7 @@ In the `Condition2` class, we implement three methods: `sleep()`, `wake()` and `
 
 First we have to make sure that the current thread holds the lock. Then we atomically add the thread to the queue and put it to sleep.
 
-We must release the lock before puting the thread to sleep otherwise no other thread can acquire the lock.
+We must release the lock before putting the thread to sleep otherwise no other thread can acquire the lock.
 
 ```
 void sleep()
@@ -64,10 +64,10 @@ We check to make sure that the current thread has the lock. Then, we atomically 
 void wake()
 {
   if the current thread does not hold the lock then abandon
-  disable interupts
+  disable interrupt
   if the first item on the readyQueue is a KThread
     call KThread.ready()
- enable interupts
+ enable interrupts
 }
 ```
 
@@ -110,7 +110,7 @@ void timerInterrupt()
   if readyQueue is not empty
     check the wake time for the thread at the head of the queue
     if it's time for him to wake up the wake him up
-  enable interupts
+  enable interrupts
   yield to the next thread
 }
 ```
@@ -124,7 +124,7 @@ void waitUntil(long x)
 {
   disable interrupts
   set wake time to current time + x
-  put the thread and waketime onto the waitQueue (priority queue)
+  put the thread and wake time onto the waitQueue (priority queue)
   go to sleep
   enable interrupts
 }
@@ -141,7 +141,7 @@ The `Communicator` class allows threads to communicate. We will implement two me
 
 ### The `speak()` Method
 
-Speakers wait until there are no liseners or other speakers before writing to the variable. Then, they wake up a waiting listener.
+Speakers wait until there are no listeners or other speakers before writing to the variable. Then, they wake up a waiting listener.
 
 ```
 void speak(int word)
@@ -191,13 +191,11 @@ int listen()
 
 ## Task V: Implementing `ReactWater`
 
-We will keep two global variables: H to count the number of hydrogen atoms present and O to count the number of oxygen atoms.
-[[TK: This is an introductory paragraph about the solution to Task V. Once again, communicate your understanding
-of the problem. Describe any instance variables you add to the ReactWater class.]]
+We will keep two global variables: H to count the number of hydrogen atoms present and O to count the number of oxygen atoms. The `hReady()` and `oReady()` methods will increment H and O respectively and the `makeWater()` method decrement the variables by the appropriate amounts and display a message.
 
 ### The `ReactWater` Constructor
 
-The constructor will simply initialize the H and O variables ot 0.
+The constructor will simply initialize the H and O variables to 0.
 
 ```
 public ReactWater()
