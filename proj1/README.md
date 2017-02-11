@@ -5,351 +5,241 @@ Group 1
 
 ## Task I: Implement `KThread` Joining
 
-[[TK: This is an introductory paragraph about the solution to Task I. It doesn’t need to be very long, since
-the majority of your choices relate specifically to the join() method, but it should communicate your
-understanding of the problem. Describe any instance variables you add to the KThread class.]]
+In `KThread`, we implement the `join()` method. When called, this method will cause the the calling thread to wait on another thread before continuing.
 
 ### Implementing the `join()` Method
 
-This thread.join() 
+The `join()` method requests access to the CPU, it checks to make sure nothing is running; if it is, it will wait on the queue.
 
-
-[[TK: Discuss the choices you have made to implement this method. You will (hopefully) spend several paragraphs
-describing the logic behind your solution.
-
-Once you have introduced your implementation strategy, you should give a listing of your pseudocode in
-a monospaced font. Also consider using this font to make method names stand out in your discussion. If you
-are using LATEX, I suggest using the verbatim environment for any pseudocode listings.]]
+If `join()` is called a second time, the behaviour is undefined
 
 ```
 void join()
 {
-  check if the thread queue exists
-  if it doesn't exit
-    create ThreadQueue object
-  disable the interopts
-  if this thread is not the current thread and the current thread is running
-    add this thread to queue
-  else
-    run next thread
-
-  reenable interrupts
+  if this thread is the current thread then abandon
+  disable interrupts
+  if this thread is running then
+    put this thread on the wait queue
+    put this thread to sleep
+  enable interrupts
 }
 ```
 
-### Other Sections You Might Include
-
-[[TK: If there are specific topics you feel are important to discuss, add another subsection for each. For example,
-you may want to talk about thread atomicity in general, as opposed to discussing it within the subsections
-containing pseudocode.]]
-
 ### Test Cases for Task I
 
-[[TK: This is an example of how you might format your test cases. I chose four test cases for the purposes of
-this document, but this should not be considered an indication of how many test cases you are expected to
-include. However, you will most likely have at least 3 or 4 test cases per task.
-
-1. Description of the first test case:
-     the expected result of the first test case
-2. Description of the second test case:
-     the expected result of the second test case
-3. Description of the third test case:
-     the expected result of the third test case
-4. Description of the fourth test case:
-     the expected result of the fourth test case
+1. We will create a thread
+2. Start a second thread
+3. Call `join()` on the first thread
+4. Verify that the thread waits for the first thread
      
-]]
 
 ## Task II: Implementing the `Condition2` Class
 
-[[TK: This is an introductory paragraph about the solution to Task II. Once again, communicate your understanding
-of the problem. You could also describe any data structures you will use to implement your solution.]]
+In the `Condition2` class, we implement three methods: `sleep()`, `wake()` and `wakeAll()`.
 
 ### Implementing the `sleep()` Method
 
-[[TK: Discuss the choices you have made to implement this method.]]
+First we have to make sure that the current thread holds the lock. Then we atomically add the thread to the queue and put it to sleep.
+
+We must release the lock before puting the thread to sleep otherwise no other thread can acquire the lock.
 
 ```
 void sleep()
 {
-  disable interupts
-  set this thread status to 'blocked'
-  reenable interrupts
+  if the current thread does not hold the lock then abandon
+  disable interrupts
+  add the current thread to the wait queue
+  release the lock
+  put the thread to sleep
+  acquire the lock
+  enable the interrupts
 }
 ```
 
 ### Implementing the `wake()` Method
 
-[[TK: Discuss the choices you have made to implement this method.]]
+We check to make sure that the current thread has the lock. Then, we atomically check the wait queue and if there is a thread on the wait queue, wake it up.
 
 ```
 void wake()
 {
+  if the current thread does not hold the lock then abandon
   disable interupts
   if the first item on the readyQueue is a KThread
     call KThread.ready()
-  reenable interupts
+ enable interupts
 }
 ```
 
+
 ### Implementing the wakeAll() Method
 
-[[TK: Discuss the choices you have made to implement this method.]]
+We simply call `wake()` on the first thread on the wait queue until the wait queue is empty.
 
 ```
 void wakeAll()
 {
-  DI
+  disable interrupts
   if readyQueue is not empty
     for each KThread in the readyQueue
       wake the KThread
-  RI
+  enable interrupts
 }
 ```
 
+
 ### Test Cases for Task II
 
-[[TK:
+1. We will create some threads (5 or more) putting them to sleep as we go along
+2. We will call `wake()` to test that one thread wakes up
+3. We will call `wakeAll()` to make sure that the rest of the threads wake up.
 
-1. Description of the first test case:
-     the expected result of the first test case
-2. Description of the second test case:
-     the expected result of the second test case
-3. Description of the third test case:
-     the expected result of the third test case
-4. Description of the fourth test case:
-     the expected result of the fourth test case
-
-]]
 
 ## Task III: Implementing Alarm
 
-[[TK: This is an introductory paragraph about the solution to Task III. Communicate your understanding of the
-problem and describe any data structures you will use to implement your solution. You may also choose to
-implement a new class, so explain why you have chosen to do so.]]
-
-### New Classes
-
-[[TK: Create a subsection for any new classes you might need to implement to solve this task. You should describe
-why each class is useful in solving the task. If possible, provide pseudocode.]]
-
-```
-MyClass implements SomeClass
-{
-  Datatype variableName;
-
-  // Constructor
-  public MyClass(Class1 var1, Class2 var2)
-  {
-      ...
-  }
-  ...
-  }
-```
+In this section we implement the `timerInterrupt()` and `waitUntil()` methods.
 
 ### Implementing the `timerInterrupt()` Method
 
-[[TK: Discuss the choices you have made to implement this method.]]
+The `timerInterrupt()` method will wake the first item on the wait queue if its time is up. The wait queue will be a priority queue and the items on the wait queue will contain a thread and a wake time.
 
 ```
 void timerInterrupt()
 {
   disable interrupts
-  if readyQueue is ....
-    curretThread.yield();
-    wake();
+  if readyQueue is not empty
+    check the wake time for the thread at the head of the queue
+    if it's time for him to wake up the wake him up
   enable interupts
+  yield to the next thread
 }
 ```
 
 ### Implementing the `waitUntil()` Method
 
-[[TK: Discuss the choices you have made to implement this method.]]
+This method will calculate the threads wake time, then put the thread along with its wake time on the waitQueue.
 
 ```
 void waitUntil(long x)
 {
-  get start time
-  while getTime < start time + x
-    KThread.sleep()
+  disable interrupts
+  set wake time to current time + x
+  put the thread and waketime onto the waitQueue (priority queue)
+  go to sleep
+  enable interrupts
 }
 ```
 
-### Private Methods
-
-[[TK: Talk about any private methods you have added (for convenience) and provide pseudocode. If you decide to
-implement private methods for both timerInterrupt() and waitUntil(), consider placing the discussion
-for each within the relevant subsection.]]
-
 ### Test Cases for Task III
 
-[[TK:
+We will make some threads and put them to sleep for various amounts of time. We will watch as they are removed from the wait queue.
 
-1. Description of the first test case:
-     the expected result of the first test case
-2. Description of the second test case:
-     the expected result of the second test case
-3. Description of the third test case:
-     the expected result of the third test case
-4. Description of the fourth test case:
-     the expected result of the fourth test case
-
-]]
 
 ## Task IV: Implementing `Communicator`
 
-[[TK: This is an introductory paragraph about the solution to Task IV. Again, communicate your understanding
-of the problem. Describe any instance variables you add to the Communicator class.]]
+The `Communicator` class allows threads to communicate. We will implement two methods: the `speak()` and the `listen()` methods.
 
 ### The `speak()` Method
 
-[[TK: Discuss the choices you have made to implement this method.]]
+Speakers wait until there are no liseners or other speakers before writing to the variable. Then, they wake up a waiting listener.
 
 ```
 void speak(int word)
 {
-  // This is the pseudocode listing for speak()
+  acquire lock
+    if the listen queue is empty then
+      create a new speaker in the speaker queue
+      set its word to the spoken word
+      put the speaker to sleep
+    else
+      get the first listener off the listen queue
+      set the listener word to the spoken word
+      wake up the listener
+  release lock
 }
 ```
 
+Listeners wait until there are no speakers to read the variable. Then, they wake up a waiting speaker.
+
 ### The `listen()` Method
 
-[[TK: Discuss the choices you have made to implement this method.]]
 
 ```
 int listen()
 {
-  // This is the pseudocode listing for listen()
+  acquire lock
+  if the speaker queue is empty then
+    create a new listener in the listener queue
+    put the listener to sleep
+    get the sleeper's word
+  else
+    remove a speaker from the queue
+    get the speaker's word
+    wake up the speaker
+  release the lock
+  return the word
 }
 ```
 
 ### Test Cases for Task IV
 
-[[TK:
-
-1. Description of the first test case:
-     the expected result of the first test case
-2. Description of the second test case:
-     the expected result of the second test case
-3. Description of the third test case:
-     the expected result of the third test case
-4. Description of the fourth test case:
-     the expected result of the fourth test case
-
-]]
+1. Speak some words (4 or 5)
+2. Call some listeners (2 or 3)
+3. Make sure that each listener heard what was spoken
+4. Check the speaker queue to make sure that they've been removed
 
 
 ## Task V: Implementing `ReactWater`
 
+We will keep two global variables: H to count the number of hydrogen atoms present and O to count the number of oxygen atoms.
 [[TK: This is an introductory paragraph about the solution to Task V. Once again, communicate your understanding
 of the problem. Describe any instance variables you add to the ReactWater class.]]
 
 ### The `ReactWater` Constructor
 
-[[TK: If you are adding any instance variables, you will most likely want to initialize them here. Describe the
-purpose of this constructor and give a pseudocode listing.]]
+The constructor will simply initialize the H and O variables ot 0.
 
 ```
 public ReactWater()
 {
-  // This is the pseudocode listing for the ReactWater constructor
+  set H and O to 0
 }
 ```
 
 ### The `hReady()` Method
 
-[[TK: Discuss the choices you have made to implement this method.]]
+`hReady()` will increment H by 1 and call `makeWater()`
 
 ```
 void hReady()
 {
-  // This is the pseudocode listing for hReady()
+  increment H by 1
+  call make water
 }
 ```
 
 ### The `oReady()` Method
 
-[[TK: Discuss the choices you have made to implement this method.]]
+`oReady()` will increment O by 1 and call `makeWater()`
 
 ```
 void oReady()
 {
-  // This is the pseudocode listing for oReady()
+  increment O by 1
+  call make water
 }
 ```
 
-### The `Makewater()` Method
+### The `makeWater()` Method
 
-[[TK: Discuss the choices you have made to implement this method.]]
+`makeWater()` will check how many of H and O we have. If we have sufficient quantities, we will decrement H by 2 and O by 1 and print a message.
 
 ```
-void Makewater()
+void makeWater()
 {
-  // This is the pseudocode listing for Makewater()
+  if H is greater-equal to 2 and O is greater-equal 1 then
+    decrement H by 2
+    decrement O by 1
+    print the "I made water" message
 }
 ```
-
-## Task V: Implementing `ReactWater`
-
-[[TK: This is an introductory paragraph about the solution to Task V. Once again, communicate your understanding
-of the problem. Describe any instance variables you add to the ReactWater class.]]
-
-### The `ReactWater` Constructor
-
-[[TK: If you are adding any instance variables, you will most likely want to initialize them here. Describe the
-purpose of this constructor and give a pseudocode listing.]]
-
-```
-public ReactWater()
-{
-  // This is the pseudocode listing for the ReactWater constructor
-}
-```
-
-### The `hReady()` Method
-
-[[TK: Discuss the choices you have made to implement this method.]]
-
-```
-void hReady()
-{
-// This is the pseudocode listing for hReady()
-}
-```
-
-### The `oReady()` Method
-
-[[TK: Discuss the choices you have made to implement this method.]]
-
-```
-void oReady()
-{
-  // This is the pseudocode listing for oReady()
-}
-```
-
-### The `Makewater()` Method
-
-[[TK: Discuss the choices you have made to implement this method.]]
-
-```
-void Makewater()
-{
-  // This is the pseudocode listing for Makewater()
-}
-```
-
-## Test Cases for Task V
-
-[[TK:
-
-1. Description of the first test case:
-     the expected result of the first test case
-2. Description of the second test case:
-     the expected result of the second test case
-3. Description of the third test case:
-     the expected result of the third test case
-4. Description of the fourth test case:
-     the expected result of the fourth test case
-     
-]]
