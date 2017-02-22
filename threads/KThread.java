@@ -3,7 +3,7 @@ package nachos.threads;
 import nachos.machine.*;
 
 /**
- * A KThread is a thread that can be used to execute Nachos kernel code. Nachos
+ *  KThread is a thread that can be used to execute Nachos kernel code. Nachos
  * allows multiple threads to run concurrently.
  *
  * To create a new thread of execution, first declare a class that implements
