@@ -4,15 +4,15 @@ import nachos.machine.Lib;
 import nachos.machine.Machine;
 
 public class WaitingThread implements Comparable<WaitingThread> {
-  private static final char DEBUG_FLAG = 'w';
+  private static final char dbgWaitingThread = 'w';
   private long wakeTime;
   private KThread thread;
 
   public WaitingThread(long wakeTime, KThread thread) {
-    Lib.debug(DEBUG_FLAG, Machine.timer().getTime() + " -- WaitingThread.WaitingThread(): START");
+    Lib.debug(dbgWaitingThread, Machine.timer().getTime() + " -- WaitingThread.WaitingThread(): START");
     this.wakeTime = wakeTime;
     this.thread = thread;
-    Lib.debug(DEBUG_FLAG, Machine.timer().getTime() + " -- WaitingThread.WaitingThread(): END");
+    Lib.debug(dbgWaitingThread, Machine.timer().getTime() + " -- WaitingThread.WaitingThread(): END");
   }
 
   public long getWakeTime() {

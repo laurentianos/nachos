@@ -10,7 +10,7 @@ import nachos.machine.Machine;
  * until a certain time.
  */
 public class Alarm {
-  private static final char DEBUG_FLAG = 'r';
+  private static final char dbgAlarm = 'r';
   private PriorityQueue<WaitingThread> waitQueue = new PriorityQueue<WaitingThread>();
 
   /**
@@ -36,18 +36,18 @@ public class Alarm {
    * should be run.
    */
   public void timerInterrupt() {
-    Lib.debug(DEBUG_FLAG, Machine.timer().getTime() + " -- Alarm.timerInterrupt(): Start");
+    Lib.debug(dbgAlarm, Machine.timer().getTime() + " -- Alarm.timerInterrupt(): Start");
     Machine.interrupt().disable();
-    Lib.debug(DEBUG_FLAG, Machine.timer().getTime() + " -- Alarm.timerInterrupt(): interrupts disabled");
+    Lib.debug(dbgAlarm, Machine.timer().getTime() + " -- Alarm.timerInterrupt(): interrupts disabled");
     while (!this.waitQueue.isEmpty() && this.waitQueue.peek().getWakeTime() > Machine.timer().getTime()) {
-      Lib.debug(DEBUG_FLAG, Machine.timer().getTime() + " -- Alarm.timerInterrupt(): time to wake up");
+      Lib.debug(dbgAlarm, Machine.timer().getTime() + " -- Alarm.timerInterrupt(): time to wake up");
       this.waitQueue.remove().getThread().ready();
-      Lib.debug(DEBUG_FLAG, Machine.timer().getTime() + " -- Alarm.timerInterrupt(): thread awoken");
+      Lib.debug(dbgAlarm, Machine.timer().getTime() + " -- Alarm.timerInterrupt(): thread awoken");
     }
     Machine.interrupt().enable();
-    Lib.debug(DEBUG_FLAG, Machine.timer().getTime() + " -- Alarm.timerInterrupt(): interrupts enabled");
+    Lib.debug(dbgAlarm, Machine.timer().getTime() + " -- Alarm.timerInterrupt(): interrupts enabled");
     KThread.currentThread().yield();
-    Lib.debug(DEBUG_FLAG, Machine.timer().getTime() + " -- Alarm.timerInterrupt(): End");
+    Lib.debug(dbgAlarm, Machine.timer().getTime() + " -- Alarm.timerInterrupt(): End");
   }
 
   /**
@@ -64,15 +64,15 @@ public class Alarm {
    * @see nachos.machine.Timer#getTime()
    */
   public void waitUntil(long x) {
-    Lib.debug(DEBUG_FLAG, Machine.timer().getTime() + " -- Alarm.waitUntil(): Start");
+    Lib.debug(dbgAlarm, Machine.timer().getTime() + " -- Alarm.waitUntil(): Start");
     Machine.interrupt().disable();
-    Lib.debug(DEBUG_FLAG, Machine.timer().getTime() + " -- Alarm.waitUntil(): interrupts disabled");
+    Lib.debug(dbgAlarm, Machine.timer().getTime() + " -- Alarm.waitUntil(): interrupts disabled");
     long wakeTime = Machine.timer().getTime() + x;
     this.waitQueue.add(new WaitingThread(wakeTime, KThread.currentThread()));
-    Lib.debug(DEBUG_FLAG, Machine.timer().getTime() + " -- Alarm.waitUntil(): current thread added to queue");
+    Lib.debug(dbgAlarm, Machine.timer().getTime() + " -- Alarm.waitUntil(): current thread added to queue");
     KThread.sleep();
     Machine.interrupt().enable();
-    Lib.debug(DEBUG_FLAG, Machine.timer().getTime() + " -- Alarm.waitUntil(): interrupts enabled");
-    Lib.debug(DEBUG_FLAG, Machine.timer().getTime() + " -- Alarm.waitUntil(): End");
+    Lib.debug(dbgAlarm, Machine.timer().getTime() + " -- Alarm.waitUntil(): interrupts enabled");
+    Lib.debug(dbgAlarm, Machine.timer().getTime() + " -- Alarm.waitUntil(): End");
   }
 }
