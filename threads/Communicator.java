@@ -1,5 +1,7 @@
 package nachos.threads;
 
+import java.util.LinkedList;
+
 import nachos.machine.*;
 
 /**
@@ -14,6 +16,10 @@ public class Communicator {
      * Allocate a new communicator.
      */
     public Communicator() {
+		
+		lock = new Lock();
+		Speaker = new LinkedList<ThreadInfo>();
+		Listener = new LinkedList<ThreadInfo>();	
     }
 
     /**
@@ -26,7 +32,25 @@ public class Communicator {
      *
      * @param	word	the integer to transfer.
      */
-    public void speak(int word) {
+   public void speak(int word) {
+		
+		lock.acquire();
+		
+		if(Listener.isEmpty()){
+			
+			ThreadInfo speaker = new ThreadInfo();
+			speaker.setWord(word);
+			Speaker.add(speaker);
+			speaker.getCondition().sleep();
+			
+		}else{
+	
+			ThreadInfo listen = Listener.removeFirst();
+			listen.setWord(word);
+			listen.getCondition().wake();
+			
+		}	
+		lock.release();
     }
 
     /**
@@ -36,6 +60,56 @@ public class Communicator {
      * @return	the integer transferred.
      */    
     public int listen() {
-	return 0;
+		
+		lock.acquire();
+
+		int word = 0;
+		
+		if(Speaker.isEmpty()){
+			
+			ThreadInfo listener = new ThreadInfo();
+			Listener.add(listener);
+			listener.getCondition().sleep();
+			word = listener.getWord();
+			
+		}else{
+			
+			ThreadInfo speaker = Speaker.removeFirst();
+			word = speaker.getWord();
+			speaker.getCondition().wake();
+		}
+		
+		lock.release();
+		
+	return word;
     }
+    
+    private static Lock lock;
+
+	private class ThreadInfo {
+		int word;
+		Condition condition;
+
+		public ThreadInfo() {
+			word = 0;
+			condition = new Condition(lock);
+		}
+
+		public Condition getCondition() {
+			return condition;
+		}
+
+		public int getWord() {
+			return word;
+		}
+
+		public void setWord(int w) {
+			this.word = w;
+		}
+	}
+
+	private LinkedList<ThreadInfo> Speaker;
+	private LinkedList<ThreadInfo> Listener;
+    
 }
+
