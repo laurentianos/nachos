@@ -277,7 +277,6 @@ public class KThread {
 	Lib.debug(dbgThread, "Joining to thread: " + toString());
 	
 	Lock lock = new Lock();
-	tcb = TCB.currentTCB();
 	waitQueue = ThreadedKernel.scheduler.newThreadQueue(false);
 	readyQueue = ThreadedKernel.scheduler.newThreadQueue(false);
 
@@ -411,7 +410,7 @@ public class KThread {
 	}
 	
 	public void run() {
-	    for (int i=0; i<5; i++) {
+	    for (int i=0; i<20; i++) {
 		System.out.println("*** thread " + which + " looped "
 				   + i + " times");
 		currentThread.yield();
