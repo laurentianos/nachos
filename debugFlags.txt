@@ -1,0 +1,43 @@
+The current debug flags are currently in use:
+
+'a':
+  userprog/UserProcess.java:    private static final char dbgProcess = 'a';
+  vm/VMProcess.java:    private static final char dbgProcess = 'a';
+
+'c':
+  machine/Coff.java:    private static final char dbgCoff = 'c';
+  machine/CoffSection.java:    private static final char dbgCoffSection = 'c';
+
+'i':
+  machine/Interrupt.java:    private static final char dbgInt = 'i';
+
+'m':
+  machine/Processor.java:    private static final char dbgDisassemble = 'm';
+
+'M':
+  machine/Processor.java:    private static final char dbgFullDisassemble = 'M';
+
+'n':
+  network/PostOffice.java:    private static final char dbgNet = 'n';
+
+'p':  
+  machine/Processor.java:    private static final char dbgProcessor = 'p';
+
+'r':
+  threads/Alarm.java:  private static final char dbgAlarm = 'r';
+
+'S':
+  security/NachosSecurityManager.java:    private static final char dbgSecurity = 'S';
+
+'s':
+  threads/Condition2.java:  private static final char dbgCond2 = 's';
+
+'t':
+  threads/KThread.java:    private static final char dbgThread = 't';
+
+'v':
+  vm/VMKernel.java:    private static final char dbgVM = 'v';
+  vm/VMProcess.java:    private static final char dbgVM = 'v';
+
+'w':
+  threads/WaitingThread.java:  private static final char dbgWaitingThread = 'w';
