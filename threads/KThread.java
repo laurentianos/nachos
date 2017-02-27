@@ -191,10 +191,11 @@ public class KThread {
 	Lib.assertTrue(toBeDestroyed == null);
 	toBeDestroyed = currentThread;
 
-
 	currentThread.status = statusFinished;
 	
-	sleep();
+	runNextThread();
+
+        //sleep();
     }
 
     /**
@@ -274,9 +275,28 @@ public class KThread {
      */
     public void join() {
 	Lib.debug(dbgThread, "Joining to thread: " + toString());
+	
+	
+	tcb = TCB.currentTCB();
+	readyQueue = ThreadedKernel.scheduler.newThreadQueue(false);
 
 	Lib.assertTrue(this != currentThread);
+	boolean intStatus = Machine.interrupt().disable();
 
+	if(currentThread.status == statusRunning){
+		readyQueue.acquire(this);
+		this.sleep();
+	}
+	else
+	{
+		readyQueue.acquire(this);
+		this.ready();
+		this.runNextThread();
+	}
+
+	Machine.interrupt().restore(intStatus);
+		
+        
     }
 
     /**
@@ -437,7 +457,7 @@ public class KThread {
      * threads.
      */
     private int id = numCreated++;
-    /** Number of times the KThread constructor was called. */
+    /** Number of times the KThread constructed was called. */
     private static int numCreated = 0;
 
     private static ThreadQueue readyQueue = null;
