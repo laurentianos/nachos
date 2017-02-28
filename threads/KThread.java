@@ -276,7 +276,7 @@ public class KThread {
     public void join() {
 	Lib.debug(dbgThread, "Joining to thread: " + toString());
 	
-	Lock lock = new Lock();
+	lock = new Lock();
 	waitQueue = ThreadedKernel.scheduler.newThreadQueue(false);
 	readyQueue = ThreadedKernel.scheduler.newThreadQueue(false);
 
@@ -357,6 +357,7 @@ public class KThread {
      *				thread.
      */
     private void run() {
+	
 	Lib.assertTrue(Machine.interrupt().disabled());
 
 	Machine.yield();
@@ -414,10 +415,19 @@ public class KThread {
 		System.out.println("*** thread " + which + " looped "
 				   + i + " times");
 		currentThread.yield();
+		
 	    }
 	}
 
 	private int which;
+    }
+
+    private static class PrintTest implements Runnable {
+	PrintTest(){}
+
+	public void run() {
+		System.out.print("Hello joined");
+	}
     }
 
     /**
@@ -426,7 +436,11 @@ public class KThread {
     public static void selfTest() {
 	Lib.debug(dbgThread, "Enter KThread.selfTest");
 	
-	new KThread(new PingTest(1)).setName("forked thread").fork();
+	KThread fT = new KThread(new PingTest(1)).setName("forked thread");
+	PingTest joinTest = new PingTest(2);
+	KThread jT = new KThread(joinTest);
+	jT.fork();
+	//fT.join();
 	new PingTest(0).run();
     }
 
@@ -463,6 +477,7 @@ public class KThread {
     /** Number of times the KThread constructed was called. */
     private static int numCreated = 0;
 
+    private static Lock lock = null;
     private static ThreadQueue waitQueue = null;
     private static ThreadQueue readyQueue = null;
     private static KThread currentThread = null;
