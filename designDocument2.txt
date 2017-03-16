@@ -1,0 +1,120 @@
+Design document for project 2
+
+Group01
+
+#############UserKernel.java########################
+
+create class called File which contains,
+
+	Object OpenFile
+	int counter = 1;
+
+	methods
+
+		OpenFile getOpenFile()
+			returns OpenFile object
+
+		int getCounter()
+			return int of counter
+
+		void incCounter()
+			increments counter by one
+
+		void decCounter()
+			decrements counter by one
+
+
+Create an array of type File in UserKernel.java 64 rows long which stores all global File objects which are currently created.
+
+
+#################UserProcess.java###########################
+
+
+Method int creat(char *name)
+
+	check to see if OpenFile array exists 
+		if FALSE, create new array 18 rows long
+		if TRUE, loop through array from 2 to 17 and check for name
+
+	if name does not exist
+		Create new File object with OpenFile object inside in global array in next open spot and increase counter to 1
+		Create new pointer in userProcess array to OpenFile object
+		return integer of index in userProcess array
+
+	If indexOutOfBounds Exception then return -1
+
+
+
+Method int open(char *name)
+
+	check to see if OpenFile array exists 
+		if FALSE 
+			return -1
+		if TRUE
+			loop through local array from elements 2 to 17 and check for name
+				if TRUE
+					return OpenFile descriptor (local index)
+				if FALSE
+					check global array for filename
+						If TRUE
+							create pointer in local array pointing to global array
+							increment counter by one
+							return Openfile descriptor (local index)
+						if FALSE
+							return -1
+
+
+Method int read(int fileDescriptor, void *buffer, int count)
+
+		check if fileDescriptor is valid
+			if FALSE
+				return -1
+			if TRUE
+				point buffer to byte[] array
+				read in number of bytes
+					
+				if number of bytes read equals count
+					return count
+					
+				if number of bytes read is less than count
+					if(fileDescriptor != 0 | 1)
+						then print "End of File"
+					else
+						return 0
+
+
+Method int write(int fileDescriptor, void *buffer, int count)
+
+	check if fileDescriptor is valid
+		if FALSE
+			return -1
+		if TRUE
+			point buffer to byte array that already has stuff in it
+			write buffer to file
+		if bytes read is less than count
+			return -1
+		else
+			return 0
+						
+	
+
+
+
+
+
+
+
+
+
+
+
+				
+	
+	
+
+
+				
+
+	
+		
+	
