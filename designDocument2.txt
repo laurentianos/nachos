@@ -8,6 +8,8 @@ create class called File which contains,
 
 	Object OpenFile
 	int counter = 1;
+	boolean isWriting = FALSE;
+	boolean isLinked = TRUE;
 
 	methods
 
@@ -23,6 +25,21 @@ create class called File which contains,
 		void decCounter()
 			decrements counter by one
 
+		boolean isOpen()
+			returns TRUE is counter is greater than zero
+
+		boolean getIsWriting()
+			returns isWriting
+
+		void setWriting(boolean writing)
+			isWriting = writing;
+
+		boolean getIsLinked()
+			returns isLinked
+
+		void setIsLinked(boolean linked)
+			isLinked = linked
+
 
 Create an array of type File in UserKernel.java 64 rows long which stores all global File objects which are currently created.
 
@@ -33,13 +50,32 @@ Create an array of type File in UserKernel.java 64 rows long which stores all gl
 Method int creat(char *name)
 
 	check to see if OpenFile array exists 
-		if FALSE, create new array 18 rows long
+		if FALSE, create new array 18 rows long and new fileSystem
 		if TRUE, loop through array from 2 to 17 and check for name
 
-	if name does not exist
+	if name does not exist in userProcess array then check global array
+	  
+	  if FALSE
+
 		Create new File object with OpenFile object inside in global array in next open spot and increase counter to 1
 		Create new pointer in userProcess array to OpenFile object
-		return integer of index in userProcess array
+
+		check isLinked()
+			if TRUE
+				return integer of index in userProcess array
+			if FALSE
+				return -1
+
+	  if TRUE then incCounter() and place pointer to file in first open userProcess element spot
+		
+		check isLinked()
+			if TRUE
+				return fileDescriptor (local index)
+			if FALSE 
+				return -1
+
+	if name does exist in local array
+		return file descriptor and call incCounter() on file
 
 	If indexOutOfBounds Exception then return -1
 
@@ -53,13 +89,24 @@ Method int open(char *name)
 		if TRUE
 			loop through local array from elements 2 to 17 and check for name
 				if TRUE
-					return OpenFile descriptor (local index)
+
+					call setIsOpen() and set TRUE
+					return file descriptor (local index)
+
 				if FALSE
+
 					check global array for filename
+
 						If TRUE
+
+						  check isLinked()
+						    if TRUE
 							create pointer in local array pointing to global array
-							increment counter by one
+							increment counter by one of File.incCounter()
 							return Openfile descriptor (local index)
+						    if FALSE 
+							return -1
+
 						if FALSE
 							return -1
 
@@ -70,6 +117,8 @@ Method int read(int fileDescriptor, void *buffer, int count)
 			if FALSE
 				return -1
 			if TRUE
+			  If file descriptor is not 0 or 1 check to make sure file is open by calling isOpen()
+				
 				point buffer to byte[] array
 				read in number of bytes
 					
@@ -89,24 +138,50 @@ Method int write(int fileDescriptor, void *buffer, int count)
 		if FALSE
 			return -1
 		if TRUE
+
+		  if fileDescriptor != 1 | 0 check the file is open by calling isOpen()
+
 			point buffer to byte array that already has stuff in it
-			write buffer to file
+			
+			set isWriting(TRUE)
+
+				write buffer to file
+
+			set isWriting(FALSE)
+
 		if bytes read is less than count
 			return -1
 		else
 			return 0
 						
 	
+Method int close(int fileDescriptor)
+	
+	check if fileDescriptor is valid and not 0 or 1
+
+		check if file isOpen()
+			
+			if FALSE 
+				return -1
+
+			if TRUE then check if isWriting()
+				if FALSE then File.decCounter()
+
+				if TRUE then wait for isWriting() = FALSE then call File.decCounter()
+			
+	if isOpen() now equals FALSE then call unlink on File to delete it.
 
 
 
+Method unlink(char *name)
 
+	check for File.OpenFile.getName() in global array
+		
+		if file exists in global array then check if it isOpen()
 
+			if FALSE then set global array element to NULL
 
-
-
-
-
+			if TRUE then call setIsLinked() on file and set to FALSE
 
 				
 	
