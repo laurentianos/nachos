@@ -2,6 +2,8 @@ Design document for project 2
 
 Group01
 
+**************TASK 1***********************************************
+
 #############UserKernel.java########################
 
 create class called File which contains,
@@ -183,13 +185,29 @@ Method unlink(char *name)
 
 			if TRUE then call setIsLinked() on file and set to FALSE
 
-				
-	
-	
+
+Changes to handleHalt()
+
+	check pid to make sure it's the root process (should be PID=0)
 
 
-				
+##############TEST CASES################
 
-	
-		
-	
+Try to open files, close them, unlink them then try to re-open them, also call halt from a running process that isn't root. Read and write to open files, read/write to 1 and 0 fileDescriptor without opening them.
+
+
+########################################
+
+*************************TASK 2*******************************************
+
+
+*************UserKernal.java********************
+
+Create a linked list to use as a global page table. Call getNumPhysPages() and set the max size of the Linked List to this number. Set the head of the global page table to the first available page.
+
+
+************UserProcess.java********************
+
+Check if pageTable is already created, it not create an for the pageTable, make it 8 elements/pages long (as per proj2 instructions).
+
+	Create new array called TranslationEntry[] called translations1
