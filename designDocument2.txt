@@ -52,7 +52,7 @@ Create an array of type File in UserKernel.java 64 rows long which stores all gl
 Method int creat(char *name)
 
 	check to see if OpenFile array exists 
-		if FALSE, create new array 18 rows long and new fileSystem
+		if FALSE, create new array 18 rows long and new fileSystem, assign elements 0 and 1 to system console
 		if TRUE, loop through array from 2 to 17 and check for name
 
 	if name does not exist in userProcess array then check global array
@@ -208,6 +208,74 @@ Create a linked list to use as a global page table. Call getNumPhysPages() and s
 
 ************UserProcess.java********************
 
-Check if pageTable is already created, it not create an for the pageTable, make it 8 elements/pages long (as per proj2 instructions).
+Check if pageTable is already created, it not create an array for the pageTable, make it 8 elements/pages long (as per proj2 instructions).
 
 	Create new array called TranslationEntry[] called translations1
+
+	This pageTable will request free pages from the UserKernal global page table. Ask for the head of the list and then load that page, then move the head of the list, load that page, etc., Until all 8 pages requested are placed in the array.
+
+	Then it will request that the kernel load in the program from memory
+
+	It will use the translations1 array to translate between the physical memory and the virtual memory.
+
+	The TranslationsEntry.java has a TranslationEntry() method that takes in a virtual page, a physical page, and all necessary bits. I'm not sure how to get this to work exactly or how it knows which physical memory location to load. You can use Processor.getMemory() and getNumPhysPages() 
+
+	When the program exits() make sure that it sets the bit in the global array to make sure it is free, and move the head of the list.
+
+
+**********read/writeVirtualMemory****************
+
+Make sure they check the PID of the requesting process and check which virtual pages it belongs to, that way a process can not write/read to another processes table.
+
+*********loadSection()*************************
+
+I don't understand what to do for this one, I'm assuming it does some of the actions that are included in UserProcess.java above. It loads the program into physical memory.
+
+
+
+#######################TEST CASES########################
+
+
+Load programs into memory. 
+
+Try and fill memory and load another process.
+
+Load multiple programs into one process and see if the memory fails.
+
+Close programs and make sure memory is freed.
+
+Open 2 processes and try to read/write to each other's page table which should not work.
+
+
+##########################################################
+
+
+
+*******************************************TASK 3********************************************
+
+
+****************join()**************************
+
+Only a child can join a parent so make sure that when the parent calls join it knows the PID of the created process and those underneath it. Possibly keep a linked list in the process so it knows which child PIDs are under it.
+
+Make sure to check childExit = FALSE so the child does indeed exist before joining it (check exit() for explanation).
+
+Inside the UserKernel.java create a PID counter that counts up everytime a new process is created.
+
+In UserProcess.java need a field called " int pid " that is set by the kernel on startup.
+
+**************exit()*************************
+
+Set global page table to release virtual memory and physical memory. Set PID and name to null. Process is no longer accessible. 
+
+Parent process should have a method called childExit() that is called by the child when it exits and sets " boolean childExit = TRUE "
+
+A process -> join(B process)
+
+B.exit()
+
+B calls A.childExit()
+
+A.childExit() makes boolean A.childExit = TRUE;
+
+Now the parents process knows that it cannot call join again on that process since it exited.
