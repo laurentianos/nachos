@@ -1,0 +1,349 @@
+\documentclass[12pt, letterpaper]{report}
+\usepackage{amsmath}
+\usepackage{varioref}
+\usepackage{listings}
+\usepackage[boxruled]{algorithm2e} % for psuedo code
+\SetKwInOut{Parameter}{parameter}
+\SetKwInOut{Return}{return}
+\newcommand{\code}[1]{\texttt{#1}}
+\labelformat{algocf}{\textit{Algorithm}\,#1}
+
+\begin{document}
+\title{Design Document for Nachos \\
+       Phase 1: Multiprogramming}
+ \author{\textbf{Abdulaziz Awliyaa,
+                 Christopher Connors,
+                 Brian Giroux} \\
+         COSC 3407 - Operating Systems \\
+         Group 1}
+\maketitle
+
+\section*{Task I -- Implement File System Calls}
+
+%#############UserKernel.java########################
+\subsection*{Changes to \code{UserKernel.java} and Creation of New \code{File} class}
+In \code{UserKernel.java}, we will create a 64 element array which will store all global \code{File} file objects which are currently active. The structure of the \code{File} class will look like this:
+
+\lstset{language=Java,caption={Outline of \code{File} class},label=FileClass}
+\begin{lstlisting}
+public class File{
+  Object OpenFile
+  int counter = 1;
+  boolean isWriting = FALSE;
+  boolean isLinked = TRUE;
+
+  /* ACCESSORS */
+
+  /**
+   * @return OpenFile object
+   */
+  OpenFile getOpenFile();
+
+  /**
+   * @return this.counter
+   */
+  int getCounter();
+
+  /**
+   * @return TRUE if this.counter is greater than zero
+   *         (ie, there is at least one open file)
+   */
+  boolean isOpen();
+
+  /**
+   * @return this.isWriting
+   */
+  boolean getIsWriting();
+
+  /**
+   * @return this.isLinked
+   */
+  boolean getIsLinked();
+
+
+  /* MUTATORS */
+
+  /**
+   * increments the this.counter by 1
+   */
+  void incCounter();
+
+  /**
+   * decrement the this.counter by 1
+   */
+  void decCounter();
+
+  /**
+   * Sets this.isWriting to TRUE.
+   */
+  void setWriting(boolean writing);
+
+  /**
+   * Sets this.isLinked to TRUE.
+   */
+  void setIsLinked(boolean linked);
+}
+\end{lstlisting}
+
+
+%#################UserProcess.java###########################
+\subsection*{Changes to the \code{UserProcess.java} class}
+\subsubsection*{Implementing the \code{creat()} Method}
+This method will create a new file if it does not already exist.
+If it was already created (ie, it exists in the global array),
+we will just link to it.
+
+See \vref{method_creat}.
+
+\begin{algorithm}[!ht]
+  \caption{The \code{creat()} method}
+  \label{method_creat}
+  \SetAlgoLined
+  \Parameter{*name -- a pointer to the filename}
+  \Return{int}
+  \BlankLine
+  \eIf{file is in global array of files}{
+    \If{we are not already linked to the file}{
+      in user process array, add link to the file in global array\;
+    }
+  }{
+    in global array, add the file\;
+    in user process array, add link to the file in global array\;
+  }
+\end{algorithm}
+
+
+\subsubsection*{Implementing the \code{open()} Method}
+We can only open an existing file.
+If a file does not exist, we return ${-1}$,
+otherwise it returns the file descriptor.
+
+See \vref{method_open}.
+
+\begin{algorithm}[!ht]
+  \caption{The \code{open()} method}
+  \label{method_open}
+  \SetAlgoLined
+  \Parameter{*name -- pointer to the name of the file to open}
+  \Return{int -- the file descriptor of the file}
+  \BlankLine
+  \eIf{OpenFile array exists}{
+    \eIf{the file is in the array}{
+      call setIsOpen\;
+      set TRUE\;
+      \KwRet{file descriptor (local index)}\;
+    }{
+      \eIf{the file is in the global array}{
+        \eIf{the file is linked}{
+          in user process array, add link to the file in global array\;
+          \KwRet{file descriptor (local index)}\;
+        }{
+          \KwRet{${-1}$}\;
+        }
+      }{
+        \KwRet{${-1}$}\;
+      }
+    }
+  }{
+    \KwRet{${-1}$}\;
+  }
+\end{algorithm}
+
+
+\subsubsection*{Implementing the \code{read()} Method}
+This method will allow us to read a number of bytes from a file.
+The bytes we read from the file will be placed in a buffer.
+
+See \vref{method_read}.
+
+\begin{algorithm}[!ht]
+  \caption{The \code{read()} method}
+  \label{method_read}
+  \SetAlgoLined
+  \Parameter{int fileDescriptor -- the file descriptor of the file to read\\
+             *buffer[] -- a pointer to the buffer array\\
+             int count -- the number of bytes to read}
+  \Return{int -- the number of bytes actually read}
+  \BlankLine
+  $counter \gets 0$\;
+  \eIf{the file descriptor is valid}{
+    \If{the file is open}{
+      \While{not end of file}{
+        read byte from file to buffer\;
+        increment counter\;
+      }
+      \KwRet{counter}\;
+    }
+  }{
+    \KwRet{${-1}$}\;
+  }
+\end{algorithm}
+
+
+%Method int write(int fileDescriptor, void *buffer, int count)
+\subsubsection*{Implementing the \code{write()} Method}
+This method will allow us to write a number of bytes from to file.
+The bytes we write to the file will come from a buffer.
+
+See \vref{method_write}.
+
+\begin{algorithm}[!ht]
+  \caption{The \code{write()} method}
+  \label{method_write}
+  \SetAlgoLined
+  \Parameter{int fileDescriptor -- the file descriptor of the file to write to\\
+             *buffer[] -- a pointer to the buffer array\\
+             int count -- the number of bytes to write}
+  \Return{int -- the number of bytes written}
+  \BlankLine
+  \eIf{the file descriptor is valid}{
+    \If{file is open}{
+      $isWriting \gets \text{TRUE}$\;
+      \For{$i \gets 0$ \KwTo $count - 1$}{
+        write buffer[i] to file\;
+      }
+      $isWriting \gets \text{FALSE}$\;
+    }
+  }{
+    \KwRet{${-1}$}\;
+  }
+\end{algorithm}
+
+
+%Method int close(int fileDescriptor)
+\subsubsection*{Implementing the \code{close()} Method}
+This method closes a file if it is not being written to by another process.
+
+See \vref{method_close}.
+
+\begin{algorithm}[!ht]
+  \caption{The \code{close()} method}
+  \label{method_close}
+  \SetAlgoLined
+  \Parameter{int fileDescriptor -- the file descriptor of the file to close}
+  \Return{int -- returns ${-1}$ if there was a problem}
+  \BlankLine
+  \eIf{the file descriptor is valid}{
+    \eIf{the file is open}{
+      \If{the file is being written to}{
+        wait for the write to end\;
+      }
+      decrement the files counter\;
+      call unlink()\;
+    }{
+      \KwRet{${-1}$}\;
+    }
+  }{
+    \KwRet{${-1}$}\;
+  }
+\end{algorithm}
+
+
+\subsubsection*{Implementing the \code{unlink()} Method}
+After a process closes a file, it must be unlinked from the table.
+See \vref{method_unlink}.
+
+\begin{algorithm}[!ht]
+  \caption{The \code{unlink()} method}
+  \label{method_unlink}
+  \SetAlgoLined
+  \Parameter{*name -- pointer to the name of the file to unlink}
+  \BlankLine
+  \If{file exists in global array}{
+    \eIf{file is open}{
+      set isLinked to FALSE\;
+    }{
+      remove file from global array\;
+    }
+  }
+\end{algorithm}
+
+
+\subsection*{Test Cases}
+We will:
+\begin{itemize}
+\item open some files
+\item close the files
+\item unlink them then try to re-open them
+\item call halt from a running process that that has open files
+\item read and write to open files
+\item read and write to 1 and 0 fileDescriptor without opening them
+\end{itemize}
+\clearpage
+
+\section*{Task II -- Implement Support for Multiprogramming}
+\subsection*{Changes to \code{UserKernel.java}}
+We will create a linked list to use as a global page table.
+We will be able to call \code{getNumPhysPages()}
+and set the max size of the Linked List to this number.
+The head of the global page table will be set to the first available page.
+
+\subsection*{Changes to \code{UserProcess.java}}
+We will first check if pageTable is already created.
+If it doesn't already exist,
+we will create an array of 8 elements that will serve as the pageTable.
+
+We will create a new array of type \code{TranslationEntry[]}
+called \code{translations1}.
+This pageTable will request free pages from the \code{UserKernel}
+global page table and ask for the head of the list.
+It will then load that page, move the head of the list,
+load the next page, and so on, until all 8 pages requested
+are placed in the array.
+Then it will request that the kernel load in the program from memory.
+It will use the \code{translations1} array to translate between the physical memory and the virtual memory.
+
+When the program calls \code{exit()},
+we must make sure that it sets the bit in the global array
+to indicate that it is free,
+and to move the head of the list.
+
+To read and write virtual memory,
+we must make sure we check the PID of the requesting process
+and check which virtual pages it belongs to,
+that way a process can not read from or write to another processes table.
+
+\subsubsection*{Implementing \code{loadSection()}}
+This method will allocate the pages that a process needs.
+
+\subsection*{Test Cases}
+To test this task, we will:
+\begin{itemize}
+\item load programs into memory
+\item try and fill memory and load another process
+\item load multiple programs into one process and see if the memory fails
+\item close programs and make sure memory is freed
+\item open 2 processes and try to read and write to each other's
+\item page table which should not work
+\end{itemize}
+\clearpage
+
+
+\section*{Task III -- Implement System Calls}
+\subsection*{Implementing the \code{join()} Method}
+Only a child can join a parent so we must make sure that when the parent
+calls \code{join()},
+it knows the PID of the created process and those underneath it.
+We will keep a linked list of child PIDs in the process.
+
+We will check that \code{childExit = FALSE}
+to make sure that the child does indeed exist before joining it.
+
+Inside the \code{UserKernel.java},
+we will create a PID counter that counts up every time
+a new process is created.
+
+In \code{UserProcess.java},
+we need need a field called ``\code{int pid}''
+that is set by the kernel on startup.
+
+
+\subsection*{Implementing the \code{exit()} Method}
+We will set global page table to release
+virtual memory and physical memory.
+We will set PID and name to null (the process is no longer accessible).
+
+The parent process will have a method called
+\code{childExit()} that is called by the child when it exits
+and sets a Boolean flag.
+\end{document}
