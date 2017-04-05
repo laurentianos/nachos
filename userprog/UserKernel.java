@@ -4,15 +4,70 @@ import nachos.machine.*;
 import nachos.threads.*;
 import nachos.userprog.*;
 
+
+/* File Object which stores a file and all it's attributes*/
+
+class File{
+
+	Object OpenFile;
+	int counter = 0;
+	boolean isWriting = false;
+	boolean isLinked = true;
+
+	/*Constructor*/
+	public File(){
+
+		counter = 1;
+		isWriting = false;
+		isLinked = true;
+	}
+
+	/*Returns the OpenFile inside the File class*/
+	OpenFile getOpenFile(){return (OpenFile)OpenFile;}
+	
+	int getCounter(){return counter;}
+
+	/*Checks if file is open*/
+	boolean isOpen(){
+		if(counter > 0){
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+
+	boolean getIsWriting(){ return isWriting; }
+
+	boolean getIsLinked(){ return isLinked; }
+
+	/*Whenever the file is opened increment counter by one*/
+	void incCounter(){++counter;}
+
+	/*Decrement counter by one*/
+	void decCounter(){--counter;}
+
+	void setWriting(boolean writing){isWriting = writing;}
+
+	void setIsLinked(boolean linked){isLinked = linked;}
+
+}
+
+
 /**
  * A kernel that can support multiple user processes.
  */
 public class UserKernel extends ThreadedKernel {
+
+    double[] globalPageTable = new double[64];
+
+
     /**
      * Allocate a new user kernel.
      */
     public UserKernel() {
 	super();
+	
     }
 
     /**
@@ -113,3 +168,4 @@ public class UserKernel extends ThreadedKernel {
     // dummy variables to make javac smarter
     private static Coff dummy1 = null;
 }
+
