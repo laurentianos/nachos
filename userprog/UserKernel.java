@@ -4,6 +4,8 @@ import nachos.machine.*;
 import nachos.threads.*;
 import nachos.userprog.*;
 
+import java.linkedlist.*;
+
 
 /* File Object which stores a file and all it's attributes*/
 
@@ -23,12 +25,12 @@ class File{
 	}
 
 	/*Returns the OpenFile inside the File class*/
-	OpenFile getOpenFile(){return (OpenFile)OpenFile;}
+	public OpenFile getOpenFile(){return (OpenFile)OpenFile;}
 	
-	int getCounter(){return counter;}
+	public int getCounter(){return counter;}
 
 	/*Checks if file is open*/
-	boolean isOpen(){
+	public boolean isOpen(){
 		if(counter > 0){
 			return true;
 		}
@@ -37,19 +39,19 @@ class File{
 		}
 	}
 
-	boolean getIsWriting(){ return isWriting; }
+	public boolean getIsWriting(){ return isWriting; }
 
-	boolean getIsLinked(){ return isLinked; }
+	public boolean getIsLinked(){ return isLinked; }
 
 	/*Whenever the file is opened increment counter by one*/
-	void incCounter(){++counter;}
+	public void incCounter(){++counter;}
 
 	/*Decrement counter by one*/
-	void decCounter(){--counter;}
+	public void decCounter(){--counter;}
 
-	void setWriting(boolean writing){isWriting = writing;}
+	public void setWriting(boolean writing){isWriting = writing;}
 
-	void setIsLinked(boolean linked){isLinked = linked;}
+	public void setIsLinked(boolean linked){isLinked = linked;}
 
 }
 
