@@ -1,173 +1,199 @@
 package nachos.userprog;
 
-import nachos.machine.*;
-import nachos.threads.*;
-import nachos.userprog.*;
+import java.util.LinkedList;
 
-import java.linkedlist.*;
-
+import nachos.machine.Coff;
+import nachos.machine.Lib;
+import nachos.machine.Machine;
+import nachos.machine.OpenFile;
+import nachos.machine.Processor;
+import nachos.threads.KThread;
+import nachos.threads.Semaphore;
+import nachos.threads.ThreadedKernel;
 
 /* File Object which stores a file and all it's attributes*/
 
-class File{
+class File {
 
-	Object OpenFile;
-	int counter = 0;
-	boolean isWriting = false;
-	boolean isLinked = true;
+  Object OpenFile;
+  int counter = 0;
+  boolean isWriting = false;
+  boolean isLinked = true;
 
-	/*Constructor*/
-	public File(){
+  /* Constructor */
+  public File() {
 
-		counter = 1;
-		isWriting = false;
-		isLinked = true;
-	}
+    this.counter = 1;
+    this.isWriting = false;
+    this.isLinked = true;
+  }
 
-	/*Returns the OpenFile inside the File class*/
-	public OpenFile getOpenFile(){return (OpenFile)OpenFile;}
-	
-	public int getCounter(){return counter;}
+  /* Returns the OpenFile inside the File class */
+  public OpenFile getOpenFile() {
+    return (OpenFile) this.OpenFile;
+  }
 
-	/*Checks if file is open*/
-	public boolean isOpen(){
-		if(counter > 0){
-			return true;
-		}
-		else{
-			return false;
-		}
-	}
+  public int getCounter() {
+    return this.counter;
+  }
 
-	public boolean getIsWriting(){ return isWriting; }
+  /* Checks if file is open */
+  public boolean isOpen() {
+    if (this.counter > 0)
+      return true;
+    else
+      return false;
+  }
 
-	public boolean getIsLinked(){ return isLinked; }
+  public boolean getIsWriting() {
+    return this.isWriting;
+  }
 
-	/*Whenever the file is opened increment counter by one*/
-	public void incCounter(){++counter;}
+  public boolean getIsLinked() {
+    return this.isLinked;
+  }
 
-	/*Decrement counter by one*/
-	public void decCounter(){--counter;}
+  /* Whenever the file is opened increment counter by one */
+  public void incCounter() {
+    ++this.counter;
+  }
 
-	public void setWriting(boolean writing){isWriting = writing;}
+  /* Decrement counter by one */
+  public void decCounter() {
+    --this.counter;
+  }
 
-	public void setIsLinked(boolean linked){isLinked = linked;}
+  public void setWriting(boolean writing) {
+    this.isWriting = writing;
+  }
+
+  public void setIsLinked(boolean linked) {
+    this.isLinked = linked;
+  }
 
 }
-
 
 /**
  * A kernel that can support multiple user processes.
  */
 public class UserKernel extends ThreadedKernel {
 
-    double[] globalPageTable = new double[64];
+  double[] globalPageTable = new double[64];
 
+  /**
+   * Allocate a new user kernel.
+   */
+  public UserKernel() {
+    super();
 
-    /**
-     * Allocate a new user kernel.
-     */
-    public UserKernel() {
-	super();
-	
-    }
+  }
 
-    /**
-     * Initialize this kernel. Creates a synchronized console and sets the
-     * processor's exception handler.
-     */
-    public void initialize(String[] args) {
-	super.initialize(args);
+  /**
+   * Initialize this kernel. Creates a synchronized console and sets the
+   * processor's exception handler.
+   */
+  @Override
+  public void initialize(String[] args) {
+    super.initialize(args);
 
-	console = new SynchConsole(Machine.console());
-	
-	Machine.processor().setExceptionHandler(new Runnable() {
-		public void run() { exceptionHandler(); }
-	    });
-    }
+    console = new SynchConsole(Machine.console());
 
-    /**
-     * Test the console device.
-     */	
-    public void selfTest() {
-	super.selfTest();
+    Machine.processor().setExceptionHandler(new Runnable() {
+      @Override
+      public void run() {
+        exceptionHandler();
+      }
+    });
+  }
 
-	System.out.println("Testing the console device. Typed characters");
-	System.out.println("will be echoed until q is typed.");
+  /**
+   * Test the console device.
+   */
+  @Override
+  public void selfTest() {
+    super.selfTest();
 
-	char c;
+    System.out.println("Testing the console device. Typed characters");
+    System.out.println("will be echoed until q is typed.");
 
-	do {
-	    c = (char) console.readByte(true);
-	    console.writeByte(c);
-	}
-	while (c != 'q');
+    char c;
 
-	System.out.println("");
-    }
+    do {
+      c = (char) console.readByte(true);
+      console.writeByte(c);
+    } while (c != 'q');
 
-    /**
-     * Returns the current process.
-     *
-     * @return	the current process, or <tt>null</tt> if no process is current.
-     */
-    public static UserProcess currentProcess() {
-	if (!(KThread.currentThread() instanceof UThread))
-	    return null;
-	
-	return ((UThread) KThread.currentThread()).process;
-    }
+    System.out.println("");
+  }
 
-    /**
-     * The exception handler. This handler is called by the processor whenever
-     * a user instruction causes a processor exception.
-     *
-     * <p>
-     * When the exception handler is invoked, interrupts are enabled, and the
-     * processor's cause register contains an integer identifying the cause of
-     * the exception (see the <tt>exceptionZZZ</tt> constants in the
-     * <tt>Processor</tt> class). If the exception involves a bad virtual
-     * address (e.g. page fault, TLB miss, read-only, bus error, or address
-     * error), the processor's BadVAddr register identifies the virtual address
-     * that caused the exception.
-     */
-    public void exceptionHandler() {
-	Lib.assertTrue(KThread.currentThread() instanceof UThread);
+  /**
+   * Returns the current process.
+   *
+   * @return the current process, or <tt>null</tt> if no process is current.
+   */
+  public static UserProcess currentProcess() {
+    if (!(KThread.currentThread() instanceof UThread))
+      return null;
 
-	UserProcess process = ((UThread) KThread.currentThread()).process;
-	int cause = Machine.processor().readRegister(Processor.regCause);
-	process.handleException(cause);
-    }
+    return ((UThread) KThread.currentThread()).process;
+  }
 
-    /**
-     * Start running user programs, by creating a process and running a shell
-     * program in it. The name of the shell program it must run is returned by
-     * <tt>Machine.getShellProgramName()</tt>.
-     *
-     * @see	nachos.machine.Machine#getShellProgramName
-     */
-    public void run() {
-	super.run();
+  /**
+   * The exception handler. This handler is called by the processor whenever a
+   * user instruction causes a processor exception.
+   *
+   * <p>
+   * When the exception handler is invoked, interrupts are enabled, and the
+   * processor's cause register contains an integer identifying the cause of the
+   * exception (see the <tt>exceptionZZZ</tt> constants in the
+   * <tt>Processor</tt> class). If the exception involves a bad virtual address
+   * (e.g. page fault, TLB miss, read-only, bus error, or address error), the
+   * processor's BadVAddr register identifies the virtual address that caused
+   * the exception.
+   */
+  public void exceptionHandler() {
+    Lib.assertTrue(KThread.currentThread() instanceof UThread);
 
-	UserProcess process = UserProcess.newUserProcess();
-	
-	String shellProgram = Machine.getShellProgramName();	
-	Lib.assertTrue(process.execute(shellProgram, new String[] { }));
+    UserProcess process = ((UThread) KThread.currentThread()).process;
+    int cause = Machine.processor().readRegister(Processor.regCause);
+    process.handleException(cause);
+  }
 
-	KThread.currentThread().finish();
-    }
+  /**
+   * Start running user programs, by creating a process and running a shell
+   * program in it. The name of the shell program it must run is returned by
+   * <tt>Machine.getShellProgramName()</tt>.
+   *
+   * @see nachos.machine.Machine#getShellProgramName
+   */
+  @Override
+  public void run() {
+    super.run();
 
-    /**
-     * Terminate this kernel. Never returns.
-     */
-    public void terminate() {
-	super.terminate();
-    }
+    UserProcess process = UserProcess.newUserProcess();
 
-    /** Globally accessible reference to the synchronized console. */
-    public static SynchConsole console;
+    String shellProgram = Machine.getShellProgramName();
+    Lib.assertTrue(process.execute(shellProgram, new String[] {}));
 
-    // dummy variables to make javac smarter
-    private static Coff dummy1 = null;
+    KThread.currentThread().finish();
+  }
+
+  /**
+   * Terminate this kernel. Never returns.
+   */
+  @Override
+  public void terminate() {
+    super.terminate();
+  }
+
+  /** Globally accessible reference to the synchronized console. */
+  public static SynchConsole console;
+
+  // dummy variables to make javac smarter
+  private static Coff dummy1 = null;
+  public static int pid;
+  public static int numProcesses;
+  public static UserProcess rootProcess;
+  public static LinkedList<Integer> ppgs;
+  public static Semaphore ppMutex;
 }
-
