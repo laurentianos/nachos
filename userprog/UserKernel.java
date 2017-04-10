@@ -4,9 +4,6 @@ import nachos.machine.*;
 import nachos.threads.*;
 import nachos.userprog.*;
 
-import java.linkedlist.*;
-
-
 /* File Object which stores a file and all it's attributes*/
 
 class File{
@@ -61,7 +58,7 @@ class File{
  */
 public class UserKernel extends ThreadedKernel {
 
-    double[] globalPageTable = new double[64];
+    LinkedList gPageTable = new LinkedList();
 
 
     /**
